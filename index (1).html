@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carteira Renda Variável — Ações, BDRs e ETFs</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #F4F0E6;
+    --card: #FFFFFF;
+    --ink: #16283A;
+    --ink-soft: #5A6B7A;
+    --accent: #A9752F;
+    --accent-soft: #F1E4CC;
+    --line: #E4DCC8;
+    --green: #2E6B4F;
+    --green-soft: #E4EEE7;
+    --red: #A6402E;
+    --red-soft: #F3E4DF;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'Fraunces', serif;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 100% -10%, #EFE7D3 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 40px 16px 80px;
+  }
+
+  .wrap{ max-width: 1180px; margin: 0 auto; }
+
+  .site-nav{ max-width:1180px; margin:0 auto 28px; }
+  .site-nav-inner{
+    background: var(--card); border:1px solid var(--line); border-radius: 100px;
+    padding: 8px 10px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .site-nav-brand{ font-family: var(--serif); font-weight:600; font-size:14px; padding-left:10px; color: var(--ink); }
+  .site-nav-links{ display:flex; gap:6px; }
+  .site-nav-link{
+    font-size:12.5px; font-weight:600; color: var(--ink-soft); text-decoration:none;
+    padding: 8px 14px; border-radius: 100px; transition: background .15s, color .15s;
+  }
+  .site-nav-link:hover{ background: var(--accent-soft); color: var(--ink); }
+  .site-nav-link.active{ background: var(--ink); color: #fff; }
+
+  .eyebrow{
+    font-family: var(--mono); text-transform:uppercase; letter-spacing:0.1em; font-size:11.5px;
+    color: var(--accent); font-weight:600; margin-bottom:8px;
+  }
+  h1{ font-family: var(--serif); font-weight:600; font-size:32px; margin:0 0 6px; letter-spacing:-0.01em; }
+  .subtitle{ color: var(--ink-soft); font-size:14.5px; margin-bottom:16px; line-height:1.5; }
+
+  .update-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+  .update-badge{
+    display:inline-flex; align-items:center; gap:6px; font-family: var(--mono); font-size:11.5px;
+    color: var(--green); background: var(--green-soft); padding:6px 12px; border-radius:100px;
+  }
+  .update-badge.stale{ color: var(--ink-soft); background: var(--accent-soft); }
+
+  .btn-refresh{
+    display:inline-flex; align-items:center; gap:6px; font-family: var(--sans); font-size:12.5px;
+    font-weight:600; color:#fff; background: var(--accent); border:none; padding:7px 14px;
+    border-radius:100px; cursor:pointer; transition: background .15s;
+  }
+  .btn-refresh:hover{ background:#8F631F; }
+  .btn-refresh:disabled{ background: var(--ink-soft); cursor:progress; opacity:.75; }
+  .spin{ display:inline-block; width:11px; height:11px; border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff; border-radius:50%; animation: spin .7s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .refresh-status{ font-family: var(--mono); font-size:11.5px; color: var(--ink-soft); }
+  .refresh-status.err{ color: var(--red); }
+  .refresh-status.ok{ color: var(--green); }
+
+  .token-link{
+    font-family: var(--sans); font-size:11.5px; color: var(--ink-soft); text-decoration:underline;
+    cursor:pointer; background:none; border:none; padding:0;
+  }
+
+  .card{
+    background: var(--card); border:1px solid var(--line); border-radius:14px; padding:28px;
+    box-shadow: 0 1px 2px rgba(22,40,58,0.04); margin-bottom:24px;
+  }
+  .card h2{ font-family: var(--serif); font-weight:600; font-size:18px; margin:0 0 4px; }
+  .desc{ color: var(--ink-soft); font-size:13px; margin-bottom:18px; }
+
+  .add-form{ display:grid; grid-template-columns: 1.1fr 0.8fr 0.9fr 0.9fr 0.9fr auto; gap:12px; align-items:end; }
+  @media (max-width: 900px){ .add-form{ grid-template-columns: 1fr 1fr; } }
+  .add-form label{ font-size:11.5px; color: var(--ink-soft); display:block; margin-bottom:5px; }
+  .add-form input{
+    width:100%; border:1px solid var(--line); background:#FBF9F4; color: var(--ink); border-radius:8px;
+    padding:9px 10px; font-size:14px; font-family: var(--mono); outline:none;
+  }
+  .add-form input:focus{ border-color: var(--accent); }
+  .btn{
+    background: var(--ink); color:#fff; border:none; padding:10px 16px; border-radius:8px;
+    font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{ background:#0F1D29; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:13px; }
+  th{
+    text-align:right; font-family: var(--mono); font-size:10.5px; text-transform:uppercase;
+    letter-spacing:0.04em; color: var(--ink-soft); font-weight:600; padding:8px 6px; border-bottom:2px solid var(--line);
+    white-space:nowrap;
+  }
+  th:first-child, td:first-child{ text-align:left; }
+  td{ text-align:right; padding:9px 6px; border-bottom:1px solid var(--line); font-family: var(--mono); white-space:nowrap; }
+  tr:last-child td{ border-bottom:none; }
+  .ticker-cell{ font-family: var(--sans); font-weight:700; }
+  .pos{ color: var(--green); }
+  .neg{ color: var(--red); }
+  .muted{ color: var(--ink-soft); }
+  .remove-btn{
+    font-family: var(--sans); font-size:11px; color: var(--red); background:none; border:none;
+    cursor:pointer; text-decoration:underline; padding:0;
+  }
+  .cenario-input{
+    width:78px; border:1px solid var(--line); background:#FBF9F4; color:var(--ink); border-radius:6px;
+    padding:5px 6px; font-size:12.5px; font-family: var(--mono); text-align:right; outline:none;
+  }
+  .cenario-input:focus{ border-color: var(--accent); }
+  .col-group-bad{ background: var(--red-soft); }
+  .col-group-good{ background: var(--green-soft); }
+  thead .col-group-bad, thead .col-group-good{ background:transparent; }
+
+  tfoot td{ font-weight:700; border-top:2px solid var(--ink); border-bottom:none; padding-top:12px; }
+  .empty-state{ text-align:center; color: var(--ink-soft); font-size:13.5px; padding:24px; }
+
+  .footnote{
+    font-size:12px; color: var(--ink-soft); line-height:1.6; padding: 4px 4px;
+  }
+
+  .table-wrap{ overflow-x:auto; }
+
+  .portfolio-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .portfolio-row select{
+    border:1px solid var(--line); background:#FBF9F4; color:var(--ink); border-radius:8px;
+    padding:9px 12px; font-size:13.5px; font-family: var(--sans); font-weight:600; outline:none;
+    min-width:180px; cursor:pointer;
+  }
+  .portfolio-row select:focus{ border-color: var(--accent); }
+  .btn-ghost{
+    background:transparent; border:1px solid var(--line); color: var(--ink-soft);
+    padding:8px 13px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family: var(--sans); transition: border-color .15s, color .15s;
+  }
+  .btn-ghost:hover{ border-color: var(--accent); color: var(--accent); }
+  .btn-ghost.danger:hover{ border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <div class="site-nav-brand">Carteira Renda Variável</div>
+    <div class="site-nav-links"></div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="eyebrow">Ações · BDRs · ETFs · B3</div>
+  <h1>Carteira Renda Variável</h1>
+  <div class="subtitle">Adicione seus ativos com quantidade e preço médio, busque a cotação atual automaticamente, e defina seus próprios cenários de preço-alvo (bom e ruim) para cada posição.</div>
+
+  <!-- CARTEIRAS -->
+  <div class="card">
+    <h2>Suas carteiras</h2>
+    <div class="desc">Cada carteira guarda seus próprios ativos, separadamente, neste navegador.</div>
+    <div class="portfolio-row">
+      <select id="select-carteira"></select>
+      <button class="btn-ghost" id="btn-nova-carteira">+ Nova carteira</button>
+      <button class="btn-ghost" id="btn-renomear-carteira">Renomear</button>
+      <button class="btn-ghost danger" id="btn-excluir-carteira">Excluir carteira</button>
+    </div>
+  </div>
+
+  <div class="update-row">
+    <div class="update-badge stale" id="update-badge">Cotações ainda não buscadas</div>
+    <button class="btn-refresh" id="btn-refresh">Atualizar cotações</button>
+    <span class="refresh-status" id="refresh-status"></span>
+    <button class="token-link" id="btn-esquecer-token" style="display:none">esquecer token salvo</button>
+  </div>
+
+  <!-- ADICIONAR ATIVO -->
+  <div class="card">
+    <h2>Adicionar ativo</h2>
+    <div class="desc">Ticker igual ao usado na B3 (ex: PLPL3, ROXO34, BOVA11). Cenários de preço são opcionais — preencha sua própria expectativa.</div>
+    <div class="add-form">
+      <div>
+        <label>Ticker</label>
+        <input type="text" id="in-ticker" placeholder="PLPL3" style="text-transform:uppercase">
+      </div>
+      <div>
+        <label>Quantidade</label>
+        <input type="number" id="in-qtd" placeholder="100" step="1">
+      </div>
+      <div>
+        <label>Preço médio (R$)</label>
+        <input type="number" id="in-pm" placeholder="11,31" step="0.01">
+      </div>
+      <div>
+        <label>Cenário ruim (R$)</label>
+        <input type="number" id="in-ruim" placeholder="opcional" step="0.01">
+      </div>
+      <div>
+        <label>Cenário bom (R$)</label>
+        <input type="number" id="in-bom" placeholder="opcional" step="0.01">
+      </div>
+      <button class="btn" id="btn-add">Adicionar</button>
+    </div>
+  </div>
+
+  <!-- CARTEIRA -->
+  <div class="card">
+    <h2>Carteira</h2>
+    <div class="desc">Clique em "Atualizar cotações" para buscar o preço atual de todos os ativos de uma vez.</div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Qtd</th>
+          <th>PM</th>
+          <th>Investido</th>
+          <th>Cotação</th>
+          <th>Atual</th>
+          <th>R$</th>
+          <th>%</th>
+          <th class="col-group-bad">Cenário ruim</th>
+          <th class="col-group-bad">Valor</th>
+          <th class="col-group-bad">Var %</th>
+          <th class="col-group-good">Cenário bom</th>
+          <th class="col-group-good">Valor</th>
+          <th class="col-group-good">Var %</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td>TOTAL</td>
+          <td></td>
+          <td></td>
+          <td id="tot-investido">—</td>
+          <td></td>
+          <td id="tot-atual">—</td>
+          <td id="tot-rs">—</td>
+          <td id="tot-pct">—</td>
+          <td></td>
+          <td id="tot-ruim">—</td>
+          <td id="tot-ruim-pct">—</td>
+          <td></td>
+          <td id="tot-bom">—</td>
+          <td id="tot-bom-pct">—</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <div class="empty-state" id="empty-state" style="display:none">Nenhum ativo na carteira ainda. Adicione um acima.</div>
+  </div>
+
+  <div class="footnote">
+    Cotações fornecidas pela <strong>brapi.dev</strong> (dados públicos da B3, defasagem típica de alguns minutos). "Cenário ruim" e "Cenário bom" são preços-alvo definidos por você — o site apenas calcula o valor e a variação da posição nesses cenários hipotéticos, sem qualquer recomendação ou projeção própria. A carteira fica salva neste navegador (localStorage) — não é enviada para nenhum servidor além da consulta de cotação.
+  </div>
+</div>
+
+<script>
+  const PORTFOLIOS_KEY = 'rv_portfolios_v1';
+  const ACTIVE_KEY = 'rv_active_portfolio';
+  const OLD_STORAGE_KEY = 'rv_carteira_v1'; // formato antigo (uma carteira só) — migrado automaticamente
+  const TOKEN_KEY = 'brapi_token';
+
+  function uid(){
+    return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function carregarPortfolios(){
+    let portfolios = JSON.parse(localStorage.getItem(PORTFOLIOS_KEY) || 'null');
+
+    if (!portfolios){
+      portfolios = {};
+      // Migração automática: se já existia uma carteira no formato antigo, vira a primeira carteira nomeada
+      const antiga = JSON.parse(localStorage.getItem(OLD_STORAGE_KEY) || 'null');
+      const id = uid();
+      portfolios[id] = { nome: 'Carteira Principal', ativos: antiga || [] };
+      localStorage.setItem(PORTFOLIOS_KEY, JSON.stringify(portfolios));
+      localStorage.setItem(ACTIVE_KEY, id);
+      if (antiga) localStorage.removeItem(OLD_STORAGE_KEY);
+    }
+    return portfolios;
+  }
+
+  let portfolios = carregarPortfolios();
+  let activeId = localStorage.getItem(ACTIVE_KEY);
+  if (!activeId || !portfolios[activeId]){
+    activeId = Object.keys(portfolios)[0];
+    localStorage.setItem(ACTIVE_KEY, activeId);
+  }
+
+  function carteiraAtual(){
+    return portfolios[activeId].ativos;
+  }
+
+  function salvarPortfolios(){
+    localStorage.setItem(PORTFOLIOS_KEY, JSON.stringify(portfolios));
+  }
+
+  // ---------- SELETOR DE CARTEIRAS ----------
+  const selectCarteira = document.getElementById('select-carteira');
+
+  function renderSeletorCarteiras(){
+    selectCarteira.innerHTML = '';
+    Object.entries(portfolios).forEach(([id, p]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = p.nome + ' (' + p.ativos.length + ' ativo' + (p.ativos.length === 1 ? '' : 's') + ')';
+      if (id === activeId) opt.selected = true;
+      selectCarteira.appendChild(opt);
+    });
+  }
+
+  selectCarteira.addEventListener('change', () => {
+    activeId = selectCarteira.value;
+    localStorage.setItem(ACTIVE_KEY, activeId);
+    updateBadge.textContent = 'Cotações ainda não buscadas';
+    updateBadge.classList.add('stale');
+    setStatus('');
+    renderizar();
+  });
+
+  document.getElementById('btn-nova-carteira').addEventListener('click', () => {
+    const nome = prompt('Nome da nova carteira:', 'Nova carteira');
+    if (!nome || !nome.trim()) return;
+    const id = uid();
+    portfolios[id] = { nome: nome.trim(), ativos: [] };
+    salvarPortfolios();
+    activeId = id;
+    localStorage.setItem(ACTIVE_KEY, activeId);
+    renderSeletorCarteiras();
+    renderizar();
+  });
+
+  document.getElementById('btn-renomear-carteira').addEventListener('click', () => {
+    const atual = portfolios[activeId];
+    const novoNome = prompt('Novo nome para "' + atual.nome + '":', atual.nome);
+    if (!novoNome || !novoNome.trim()) return;
+    atual.nome = novoNome.trim();
+    salvarPortfolios();
+    renderSeletorCarteiras();
+  });
+
+  document.getElementById('btn-excluir-carteira').addEventListener('click', () => {
+    const ids = Object.keys(portfolios);
+    if (ids.length <= 1){
+      alert('Você precisa manter ao menos uma carteira.');
+      return;
+    }
+    const atual = portfolios[activeId];
+    if (!confirm('Excluir a carteira "' + atual.nome + '" e todos os seus ativos? Essa ação não pode ser desfeita.')) return;
+    delete portfolios[activeId];
+    salvarPortfolios();
+    activeId = Object.keys(portfolios)[0];
+    localStorage.setItem(ACTIVE_KEY, activeId);
+    renderSeletorCarteiras();
+    renderizar();
+  });
+
+  const tbody = document.getElementById('tbody');
+  const emptyState = document.getElementById('empty-state');
+  const updateBadge = document.getElementById('update-badge');
+  const btnRefresh = document.getElementById('btn-refresh');
+  const refreshStatus = document.getElementById('refresh-status');
+  const btnEsquecerToken = document.getElementById('btn-esquecer-token');
+
+  const fmtBRL = v => (v === null || v === undefined || isNaN(v)) ? '—' :
+    v.toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:2 });
+  const fmtPct = v => (v === null || v === undefined || isNaN(v)) ? '—' :
+    (v*100).toLocaleString('pt-BR', { maximumFractionDigits:2 }) + '%';
+
+  function salvar(){
+    salvarPortfolios();
+    renderSeletorCarteiras();
+  }
+
+  function pctClass(v){
+    if (v === null || v === undefined || isNaN(v)) return 'muted';
+    return v >= 0 ? 'pos' : 'neg';
+  }
+
+  function renderizar(){
+    const carteira = carteiraAtual();
+    tbody.innerHTML = '';
+    emptyState.style.display = carteira.length ? 'none' : 'block';
+
+    let totInvestido = 0, totAtual = 0, totRuim = 0, totBom = 0;
+    let temCotacao = false;
+
+    carteira.forEach((ativo, i) => {
+      const investido = ativo.qtd * ativo.pm;
+      const temPreco = ativo.cotacao !== null && ativo.cotacao !== undefined;
+      if (temPreco) temCotacao = true;
+      const valorAtual = temPreco ? ativo.qtd * ativo.cotacao : null;
+      const resultadoRS = temPreco ? valorAtual - investido : null;
+      const resultadoPct = temPreco ? resultadoRS / investido : null;
+
+      const temRuim = ativo.cenarioRuim !== null && ativo.cenarioRuim !== undefined && ativo.cenarioRuim !== '';
+      const valorRuim = temRuim ? ativo.qtd * ativo.cenarioRuim : null;
+      const varRuimRS = temRuim ? valorRuim - investido : null;
+      const varRuimPct = temRuim ? varRuimRS / investido : null;
+
+      const temBom = ativo.cenarioBom !== null && ativo.cenarioBom !== undefined && ativo.cenarioBom !== '';
+      const valorBom = temBom ? ativo.qtd * ativo.cenarioBom : null;
+      const varBomRS = temBom ? valorBom - investido : null;
+      const varBomPct = temBom ? varBomRS / investido : null;
+
+      totInvestido += investido;
+      if (temPreco) totAtual += valorAtual;
+      if (temRuim) totRuim += valorRuim;
+      if (temBom) totBom += valorBom;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="ticker-cell">${ativo.ticker}</td>
+        <td>${ativo.qtd.toLocaleString('pt-BR')}</td>
+        <td>${fmtBRL(ativo.pm)}</td>
+        <td>${fmtBRL(investido)}</td>
+        <td>${temPreco ? fmtBRL(ativo.cotacao) : '<span class="muted">—</span>'}</td>
+        <td>${temPreco ? fmtBRL(valorAtual) : '<span class="muted">—</span>'}</td>
+        <td class="${pctClass(resultadoRS)}">${temPreco ? fmtBRL(resultadoRS) : '<span class="muted">—</span>'}</td>
+        <td class="${pctClass(resultadoPct)}">${temPreco ? fmtPct(resultadoPct) : '<span class="muted">—</span>'}</td>
+        <td class="col-group-bad"><input type="number" step="0.01" class="cenario-input" data-i="${i}" data-campo="cenarioRuim" value="${ativo.cenarioRuim ?? ''}" placeholder="—"></td>
+        <td class="col-group-bad">${temRuim ? fmtBRL(valorRuim) : '<span class="muted">—</span>'}</td>
+        <td class="col-group-bad ${pctClass(varRuimPct)}">${temRuim ? fmtPct(varRuimPct) : '<span class="muted">—</span>'}</td>
+        <td class="col-group-good"><input type="number" step="0.01" class="cenario-input" data-i="${i}" data-campo="cenarioBom" value="${ativo.cenarioBom ?? ''}" placeholder="—"></td>
+        <td class="col-group-good">${temBom ? fmtBRL(valorBom) : '<span class="muted">—</span>'}</td>
+        <td class="col-group-good ${pctClass(varBomPct)}">${temBom ? fmtPct(varBomPct) : '<span class="muted">—</span>'}</td>
+        <td><button class="remove-btn" data-i="${i}">remover</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('tot-investido').textContent = fmtBRL(totInvestido);
+    document.getElementById('tot-atual').textContent = temCotacao ? fmtBRL(totAtual) : '—';
+    document.getElementById('tot-rs').textContent = temCotacao ? fmtBRL(totAtual - totInvestido) : '—';
+    document.getElementById('tot-pct').textContent = temCotacao && totInvestido ? fmtPct((totAtual - totInvestido) / totInvestido) : '—';
+    document.getElementById('tot-ruim').textContent = totRuim ? fmtBRL(totRuim) : '—';
+    document.getElementById('tot-ruim-pct').textContent = totRuim && totInvestido ? fmtPct((totRuim - totInvestido) / totInvestido) : '—';
+    document.getElementById('tot-bom').textContent = totBom ? fmtBRL(totBom) : '—';
+    document.getElementById('tot-bom-pct').textContent = totBom && totInvestido ? fmtPct((totBom - totInvestido) / totInvestido) : '—';
+
+    // listeners para inputs de cenário e remoção
+    tbody.querySelectorAll('.cenario-input').forEach(inp => {
+      inp.addEventListener('change', e => {
+        const i = parseInt(e.target.dataset.i);
+        const campo = e.target.dataset.campo;
+        const val = e.target.value === '' ? null : parseFloat(e.target.value);
+        carteira[i][campo] = val;
+        salvar();
+        renderizar();
+      });
+    });
+    tbody.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const i = parseInt(e.target.dataset.i);
+        carteira.splice(i, 1);
+        salvar();
+        renderizar();
+      });
+    });
+  }
+
+  // ---------- ADICIONAR ATIVO ----------
+  document.getElementById('btn-add').addEventListener('click', () => {
+    const ticker = document.getElementById('in-ticker').value.trim().toUpperCase();
+    const qtd = parseFloat(document.getElementById('in-qtd').value);
+    const pm = parseFloat(document.getElementById('in-pm').value);
+    const ruimVal = document.getElementById('in-ruim').value;
+    const bomVal = document.getElementById('in-bom').value;
+
+    if (!ticker || !qtd || !pm) {
+      alert('Preencha ao menos ticker, quantidade e preço médio.');
+      return;
+    }
+
+    carteiraAtual().push({
+      ticker,
+      qtd,
+      pm,
+      cenarioRuim: ruimVal === '' ? null : parseFloat(ruimVal),
+      cenarioBom: bomVal === '' ? null : parseFloat(bomVal),
+      cotacao: null,
+      atualizadoEm: null
+    });
+    salvar();
+    renderizar();
+
+    document.getElementById('in-ticker').value = '';
+    document.getElementById('in-qtd').value = '';
+    document.getElementById('in-pm').value = '';
+    document.getElementById('in-ruim').value = '';
+    document.getElementById('in-bom').value = '';
+    document.getElementById('in-ticker').focus();
+  });
+
+  // ---------- TOKEN BRAPI ----------
+  function getToken(){
+    return localStorage.getItem(TOKEN_KEY);
+  }
+  function pedirToken(){
+    const token = prompt(
+      'Cole seu token gratuito da brapi.dev (crie em brapi.dev/dashboard).\n\n' +
+      'Esse token só permite consultar cotações públicas — fica salvo neste navegador (localStorage) para você não precisar colar de novo toda vez.'
+    );
+    if (token && token.trim()){
+      localStorage.setItem(TOKEN_KEY, token.trim());
+      btnEsquecerToken.style.display = 'inline';
+      return token.trim();
+    }
+    return null;
+  }
+  btnEsquecerToken.addEventListener('click', () => {
+    localStorage.removeItem(TOKEN_KEY);
+    btnEsquecerToken.style.display = 'none';
+    refreshStatus.textContent = 'Token esquecido.';
+    refreshStatus.className = 'refresh-status';
+  });
+  if (getToken()) btnEsquecerToken.style.display = 'inline';
+
+  function setStatus(msg, kind){
+    refreshStatus.textContent = msg;
+    refreshStatus.className = 'refresh-status' + (kind ? ' ' + kind : '');
+  }
+
+  // ---------- ATUALIZAR COTAÇÕES ----------
+  btnRefresh.addEventListener('click', atualizarCotacoes);
+
+  async function atualizarCotacoes(){
+    const carteira = carteiraAtual();
+    if (!carteira.length){
+      setStatus('Adicione ao menos um ativo primeiro.', 'err');
+      return;
+    }
+    let token = getToken() || pedirToken();
+    if (!token) return;
+
+    btnRefresh.disabled = true;
+    btnRefresh.innerHTML = '<span class="spin"></span> Buscando…';
+    setStatus('Consultando cotações na brapi.dev…');
+
+    try {
+      const tickers = [...new Set(carteira.map(a => a.ticker))].join(',');
+      const resp = await fetch(`https://brapi.dev/api/quote/${encodeURIComponent(tickers)}?token=${encodeURIComponent(token)}`);
+
+      if (resp.status === 401 || resp.status === 403){
+        localStorage.removeItem(TOKEN_KEY);
+        btnEsquecerToken.style.display = 'none';
+        throw new Error('Token inválido ou expirado. Tente de novo.');
+      }
+      if (!resp.ok){
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || ('Erro HTTP ' + resp.status));
+      }
+
+      const data = await resp.json();
+      const resultados = data.results || [];
+      const encontrados = new Map(resultados.map(r => [r.symbol, r]));
+
+      const agora = new Date().toISOString();
+      let faltando = [];
+      carteira.forEach(ativo => {
+        const r = encontrados.get(ativo.ticker);
+        if (r && typeof r.regularMarketPrice === 'number'){
+          ativo.cotacao = r.regularMarketPrice;
+          ativo.atualizadoEm = agora;
+        } else {
+          faltando.push(ativo.ticker);
+        }
+      });
+
+      salvar();
+      renderizar();
+      updateBadge.textContent = `Cotações atualizadas em ${new Date(agora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`;
+      updateBadge.classList.remove('stale');
+
+      if (faltando.length){
+        setStatus('Não encontrado(s): ' + faltando.join(', ') + ' — confira o ticker.', 'err');
+      } else {
+        setStatus('Cotações atualizadas com sucesso.', 'ok');
+      }
+
+    } catch (e){
+      setStatus('Falha: ' + e.message, 'err');
+    } finally {
+      btnRefresh.disabled = false;
+      btnRefresh.textContent = 'Atualizar cotações';
+    }
+  }
+
+  // ---------- INIT ----------
+  renderSeletorCarteiras();
+  renderizar();
+</script>
+</body>
+</html>
